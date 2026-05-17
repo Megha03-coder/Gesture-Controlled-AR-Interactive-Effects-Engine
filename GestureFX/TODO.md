@@ -1,0 +1,13 @@
+- [ ] Create modular package structure under GestureFX/
+- [ ] Implement utils.py (geometry, drawing helpers, fps)
+- [ ] Implement hand_tracking.py (MediaPipe Hands + landmark + finger state)
+- [ ] Implement gesture_detector.py (map finger patterns to gestures)
+- [ ] Implement particle_system.py (generic particle engine)
+- [ ] Implement overlay_manager.py (alpha blending + rainbow overlay)
+- [ ] Implement sound_manager.py (Pygame audio with cooldown)
+- [ ] Implement effect_manager.py (render effects + background blur/freezes)
+- [ ] Implement main.py (webcam loop, UI overlays, orchestrate modules)
+- [ ] Add basic asset fallbacks (code-generated visuals)
+- [ ] Run a smoke test: python main.py
+- [ ] Ensure FPS target and basic gesture stability
+

@@ -1,0 +1,7 @@
+opencv-python>=4.8.0
+mediapipe>=0.10.0
+cvzone>=1.6.1
+numpy>=1.23.0
+pygame>=2.5.0
+pillow>=10.0.0
+
