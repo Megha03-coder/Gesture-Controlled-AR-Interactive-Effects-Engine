@@ -1,0 +1,21 @@
+# Core Vision & AR
+opencv-python>=4.8.0
+mediapipe>=0.10.0
+cvzone>=1.5.6
+numpy>=1.24.3
+Pillow>=10.0.0
+
+# AI & Machine Learning
+tensorflow>=2.13.0
+keras>=2.13.1
+
+# Voice & Audio
+SpeechRecognition>=3.10.0
+pyttsx3>=2.90
+PyAudio>=0.2.13
+pygame>=2.5.0
+
+# System & UI
+pyautogui>=0.9.54
+PyQt5>=5.15.9
+PyOpenGL>=3.1.7
