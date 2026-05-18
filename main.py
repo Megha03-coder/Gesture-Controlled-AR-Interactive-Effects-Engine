@@ -6,7 +6,6 @@ from config import Config
 # --- FUTURE VISIONFX MODULES (To be implemented) ---
 from tracking.hand_tracking import AdvancedHandTracker
 from tracking.face_tracking import FaceEmotionTracker
-from tracking.pose_tracking import BodyPoseTracker
 from gestures.gesture_detector import DeepGestureDetector
 from audio.voice_commands import VoiceAssistant
 from ui.futuristic_hud import IronManHUD
@@ -24,7 +23,6 @@ class VisionFXEngine:
         # Initialize sub-systems (Placeholders for Phase 2)
         self.hand_tracker = AdvancedHandTracker()
         self.face_tracker = FaceEmotionTracker()
-        self.pose_tracker = BodyPoseTracker()
         self.hud = IronManHUD()
         self.voice = VoiceAssistant()
         self.gesture_detector = DeepGestureDetector()
@@ -80,9 +78,6 @@ class VisionFXEngine:
             hands = self.hand_tracker.process(frame, draw=False)
             faces = self.face_tracker.process(frame, draw=False)
             
-            # Set draw=True here if you want to visually see the AI Body Skeleton!
-            poses = self.pose_tracker.process(frame, draw=False)
-            
             # --- 2. GESTURE & LOGIC PHASE ---
             active_gestures = self.gesture_detector.analyze(hands)
             
@@ -93,14 +88,14 @@ class VisionFXEngine:
             # Darken the camera feed (turning bright white into grey) so glowing effects pop beautifully
             frame = cv2.addWeighted(frame, 0.6, frame, 0, 0)
             
-            frame = self.particles.render(frame, active_gestures, hands, self.active_mode, poses)
+            frame = self.particles.render(frame, active_gestures, hands, self.active_mode)
             
             curr_time = time.time()
             fps = int(1 / (curr_time - prev_time)) if (curr_time - prev_time) > 0 else 0
             prev_time = curr_time
 
             # Draw futuristic HUD
-            frame = self.hud.draw(frame, fps, active_gestures, self.active_mode, faces, poses)
+            frame = self.hud.draw(frame, fps, active_gestures, self.active_mode, faces)
 
             cv2.imshow(f"{Config.PROJECT_NAME} Interface", frame)
 

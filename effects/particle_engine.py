@@ -79,41 +79,10 @@ class ParticleEngine:
         self.particles = alive_particles
         return current_time
 
-    def render(self, frame: np.ndarray, active_gesture: str, hands: list, active_mode: str = "idle", poses: list = None) -> np.ndarray:
+    def render(self, frame: np.ndarray, active_gesture: str, hands: list, active_mode: str = "idle") -> np.ndarray:
         current_time_render = cv2.getTickCount() / cv2.getTickFrequency() * 1000
         t_sec = current_time_render / 1000.0
         
-        # --- FULL BODY AURA ---
-        if poses:
-            pose = poses[0]
-            if len(pose.lm_list) > 0:
-                # Determine Aura Color based on Gesture
-                aura_color = (255, 255, 0)  # Default Cyan BGR
-                if active_gesture == "FIRE MODE": aura_color = (0, 100, 255)
-                elif active_gesture == "LIGHTNING / SPARK": aura_color = (255, 200, 50)
-                elif active_gesture == "THUMBS UP": aura_color = (0, 255, 0)
-                elif active_gesture == "ROCK SIGN": aura_color = (0, 50, 255)
-                elif active_gesture == "MAGIC CIRCLE": aura_color = (50, 170, 255)
-                elif active_gesture == "OPEN PALM (RGB)": aura_color = (255, 0, 255)
-                elif active_gesture == "CLOSED FIST (FREEZE)": aura_color = (255, 150, 0)
-                elif active_gesture == "PINKY UP (SMOKE)": aura_color = (150, 150, 150)
-                
-                # Dynamic pulsing alpha
-                pulse = 0.5 + 0.5 * math.sin(t_sec * 6)
-                fill_alpha = 0.08 + 0.08 * pulse
-                
-                # Draw the aura outline and fill
-                hull = cv2.convexHull(np.array(pose.lm_list))
-                aura_overlay = frame.copy()
-                cv2.fillConvexPoly(aura_overlay, hull, aura_color)
-                
-                # Blend the fill
-                frame[:] = cv2.addWeighted(aura_overlay, fill_alpha, frame, 1.0 - fill_alpha, 0)
-                
-                # Draw glowing edge
-                cv2.polylines(frame, [hull], True, aura_color, 4, cv2.LINE_AA)
-                cv2.polylines(frame, [hull], True, (255, 255, 255), 1, cv2.LINE_AA)
-
         # Initialize or resize the persistent drawing canvas
         h_frame, w_frame = frame.shape[:2]
         if self.canvas is None or self.canvas.shape[:2] != (h_frame, w_frame):
@@ -201,8 +170,24 @@ class ParticleEngine:
             
             if active_gesture == "FIRE MODE":
                 # Orange/Red fire at index tip (Node 8)
-                self.spawn(lm[8][0], lm[8][1], n=6, base_color=(0, 100, 255), 
-                           speed=3.0, life_ms=400, size=6.0, gravity=-0.5, drag=0.9)
+                x, y = lm[8][0], lm[8][1]
+
+                # Add a glowing aura around the finger tip
+                glow_overlay = np.zeros_like(frame, dtype=np.uint8)
+                pulse = 0.8 + 0.2 * math.sin(t_sec * 15)
+                cv2.circle(glow_overlay, (x, y), int(40 * pulse), (0, 100, 255), -1) # Orange glow
+                cv2.circle(glow_overlay, (x, y), int(20 * pulse), (150, 200, 255), -1) # Yellowish core
+                frame = cv2.addWeighted(frame, 1.0, glow_overlay, 0.4, 0) # Blend the glow onto the frame
+
+                # Spawn more intense orange/red particles
+                self.spawn(x, y, n=20, base_color=(0, 100, 255), # More particles
+                           speed=4.5, life_ms=500, size=8.0, gravity=-0.6, drag=0.9) # Faster, larger, longer life
+                # Add yellow core particles for more fiery look
+                self.spawn(x, y, n=15, base_color=(0, 200, 255), # Yellow, more particles
+                           speed=4.0, life_ms=400, size=6.0, gravity=-0.7, drag=0.9) # Faster, larger, longer life
+                # Add some red embers
+                self.spawn(x, y, n=8, base_color=(0, 0, 255), # Red
+                           speed=3.0, life_ms=600, size=4.0, gravity=-0.4, drag=0.95) # Slower, smaller, longer life
             elif active_gesture == "LIGHTNING / SPARK":
                 # Blue sparks at index and middle fingers (Nodes 8 & 12)
                 for tip in [8, 12]:
@@ -299,6 +284,57 @@ class ParticleEngine:
                 flash_alpha = 0.3 * alpha_ring
                 tint = np.full_like(frame, (0, 50, 255)) # BGR for Orange
                 frame[:] = cv2.addWeighted(frame, 1.0 - flash_alpha, tint, flash_alpha, 0)
+            elif active_gesture == "DAZZLING":
+                # Dazzling star-like particles from 3 finger tips
+                for tip in [8, 12, 16]: # Index, Middle, Ring
+                    x, y = lm[tip][0], lm[tip][1]
+                    
+                    # Spawn bright white/yellow "star" particles
+                    self.spawn(x, y, n=5, base_color=(220, 255, 255), # Bright yellow
+                               speed=5.0, life_ms=400, size=5.0, spread=math.pi*2, drag=0.9, gravity=0.05)
+                    self.spawn(x, y, n=5, base_color=(255, 255, 255), # Bright white
+                               speed=4.0, life_ms=350, size=3.0, spread=math.pi*2, drag=0.9, gravity=0.05)
+                
+                # Add a random lens flare effect for extra "dazzle"
+                if random.random() < 0.08: # 8% chance per frame
+                    lx, ly = random.randint(0, w_frame), random.randint(0, h_frame)
+                    l_radius = random.randint(50, 150)
+                    l_color = (200, 255, 255) # Yellowish-white
+                    
+                    flare_overlay = frame.copy()
+                    cv2.circle(flare_overlay, (lx, ly), l_radius, l_color, -1)
+                    cv2.line(flare_overlay, (lx - l_radius*2, ly), (lx + l_radius*2, ly), l_color, 2)
+                    cv2.line(flare_overlay, (lx, ly - l_radius*2), (lx, ly + l_radius*2), l_color, 2)
+                    
+                    frame[:] = cv2.addWeighted(flare_overlay, 0.2, frame, 0.8, 0)
+            elif active_gesture == "PRISM":
+                # Prism effect emanating from the palm
+                cx = int((lm[0][0] + lm[5][0] + lm[17][0]) / 3)
+                cy = int((lm[0][1] + lm[5][1] + lm[17][1]) / 3)
+                t = cv2.getTickCount() / cv2.getTickFrequency()
+
+                # Draw a rotating prism shape (triangle)
+                prism_overlay = frame.copy()
+                radius = 50
+                angle = t * 120
+                
+                pts = []
+                for i in range(3):
+                    px = cx + int(radius * math.cos(math.radians(angle + i * 120)))
+                    py = cy + int(radius * math.sin(math.radians(angle + i * 120)))
+                    pts.append([px, py])
+                
+                cv2.polylines(prism_overlay, [np.array(pts)], True, (255, 255, 255), 2, cv2.LINE_AA)
+                frame[:] = cv2.addWeighted(prism_overlay, 0.6, frame, 0.4, 0)
+
+                # Spawn rainbow particles by cycling through hue
+                hue = int(t * 150) % 180 # OpenCV HSV hue is 0-179
+                color_hsv = np.uint8([[[hue, 255, 255]]])
+                color_bgr = cv2.cvtColor(color_hsv, cv2.COLOR_HSV2BGR)[0][0]
+                
+                self.spawn(cx, cy, n=10, 
+                           base_color=(int(color_bgr[0]), int(color_bgr[1]), int(color_bgr[2])),
+                           speed=6.0, life_ms=700, size=5.0, spread=math.pi, gravity=0, drag=0.95)
 
         # 2. Update physics
         current_time = self.update()

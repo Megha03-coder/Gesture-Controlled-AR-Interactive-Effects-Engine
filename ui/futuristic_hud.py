@@ -14,7 +14,7 @@ class IronManHUD:
         # Simulated neural-network data stream
         self.data_stream = [f"0x{random.randint(1000, 9999):04X}" for _ in range(10)]
 
-    def draw(self, frame: np.ndarray, fps: int, active_gestures: str, active_mode: str, faces: list = None, poses: list = None) -> np.ndarray:
+    def draw(self, frame: np.ndarray, fps: int, active_gestures: str, active_mode: str, faces: list = None) -> np.ndarray:
         h, w = frame.shape[:2]
         t = time.time()
         
@@ -28,7 +28,7 @@ class IronManHUD:
         self._draw_reticle(overlay, w, h, t)
         
         # 3. Draw side informational panels & data streams
-        self._draw_info_panel(overlay, fps, active_gestures, active_mode, w, h, t, faces, poses)
+        self._draw_info_panel(overlay, fps, active_gestures, active_mode, w, h, t, faces)
         
         # 4. Global tracking crosshair grid
         self._apply_fx(overlay, w, h)
@@ -79,7 +79,7 @@ class IronManHUD:
         cv2.line(frame, (cx - 15, cy), (cx + 15, cy), self.main_color, 1)
         cv2.line(frame, (cx, cy - 15), (cx, cy + 15), self.main_color, 1)
         
-    def _draw_info_panel(self, frame, fps, active_gestures, active_mode, w, h, t, faces, poses):
+    def _draw_info_panel(self, frame, fps, active_gestures, active_mode, w, h, t, faces):
         # Continuously update the fake neural data stream
         if int(t * 15) % 5 == 0:
             self.data_stream.pop(0)
@@ -108,10 +108,6 @@ class IronManHUD:
         if faces:
             emotion = faces[0].emotion
         cv2.putText(frame, f"EMOTION:    {emotion}", (right_x, h // 2 - 10), self.font, 0.45, self.main_color, 1, cv2.LINE_AA)
-        
-        body_status = "LOCKED" if poses else "SCANNING..."
-        status_color = self.main_color if poses else self.alert_color
-        cv2.putText(frame, f"BODY TRK:   {body_status}", (right_x, h // 2 + 10), self.font, 0.45, status_color, 1, cv2.LINE_AA)
         
         # Dynamic Sine Wave Visualizer
         wave_y = h // 2 + 20

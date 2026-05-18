@@ -11,7 +11,6 @@ class Config:
     # AI Confidence Thresholds
     HAND_DETECTION_CONFIDENCE = 0.7
     FACE_DETECTION_CONFIDENCE = 0.7
-    POSE_DETECTION_CONFIDENCE = 0.7
     
     # HUD & UI
     HUD_COLOR_MAIN = (0, 255, 255)  # Cyan (Iron Man / Sci-Fi style)
