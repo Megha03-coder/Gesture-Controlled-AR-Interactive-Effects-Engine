@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Tuple
 
 
 @dataclass
@@ -16,29 +16,20 @@ class GestureDetector:
 
     def __init__(self):
         self.map: Dict[Tuple[int, int, int, int, int], Tuple[str, str]] = {
-            (0, 1, 0, 0, 0): ("One Finger Up", "fire"),
-            (0, 1, 1, 0, 0): ("Two Fingers Up", "spark"),
-            (1, 1, 1, 1, 1): ("Open Palm", "rgb_palm"),
-            (0, 0, 0, 0, 0): ("Closed Fist", "freeze"),
-            (1, 0, 0, 0, 0): ("Thumbs Up", "lightning"),
-            (0, 1, 1, 0, 0): ("Victory Sign", "neon_particles"),  # same bits per spec; will resolve below
-            (1, 1, 0, 0, 0): ("L-Sign", "sepia_filter"),
-            (0, 1, 0, 0, 1): ("Rock On", "portal"),
-            (0, 1, 1, 1, 1): ("Four Fingers", "magic_circle"),
-            (0, 0, 0, 0, 1): ("Pinky Up", "smoke"),
+            (0, 1, 0, 0, 0): ("One Finger Up", "black_white"),
+            (1, 1, 0, 0, 0): ("One Finger Up", "black_white"),  # Forgiving thumb
+            (0, 1, 1, 0, 0): ("Two Fingers Up", "neon_glow"),
+            (1, 1, 1, 0, 0): ("Two Fingers Up", "neon_glow"),   # Forgiving thumb
+            (0, 1, 1, 1, 0): ("Three Fingers Up", "cartoon"),
+            (1, 1, 1, 1, 0): ("Three Fingers Up", "cartoon"),   # Forgiving thumb
+            (1, 1, 1, 1, 1): ("Open Palm", "reset"),
+            (0, 1, 1, 1, 1): ("Open Palm", "reset"),            # Forgiving thumb
+            (0, 0, 0, 0, 0): ("Closed Fist", "toggle_pause"),
+            (1, 0, 0, 0, 0): ("Closed Fist", "toggle_pause"),   # Forgiving thumb
         }
-
-        # Resolve spec ambiguity: Victory and Two Fingers both [0,1,1,0,0].
-        # We'll disambiguate by hand orientation in effect_manager using palm bbox width/height.
-        self.two_fingers_key = (0, 1, 1, 0, 0)
 
     def detect(self, finger_bits: List[int]) -> GestureResult:
         key = tuple(finger_bits)
-
-        if key == self.two_fingers_key:
-            # default to Two Fingers Up (spark); effect_manager may override to neon.
-            name, gid = "Two Fingers Up", "spark"
-            return GestureResult(gesture_name=name, finger_bits=finger_bits, gesture_id=gid)
 
         if key in self.map:
             name, gid = self.map[key]
