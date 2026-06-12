@@ -55,10 +55,7 @@ def main():
             gesture_id = detected.gesture_id
 
             if gesture_id != "none" and (t_ms - last_action_ms) > debounce_ms:
-                if gesture_id == "toggle_pause":
-                    filter_paused = not filter_paused
-                    last_action_ms = t_ms
-                elif not filter_paused:
+                if not filter_paused:
                     if gesture_id == "black_white":
                         active_filter_name = "Black & White"
                         last_action_ms = t_ms
@@ -67,6 +64,15 @@ def main():
                         last_action_ms = t_ms
                     elif gesture_id == "cartoon":
                         active_filter_name = "Cartoon"
+                        last_action_ms = t_ms
+                    elif gesture_id == "rainbow_wave":
+                        active_filter_name = "Rainbow Wave"
+                        last_action_ms = t_ms
+                    elif gesture_id == "hologram":
+                        active_filter_name = "Hologram"
+                        last_action_ms = t_ms
+                    elif gesture_id == "glitch_mode":
+                        active_filter_name = "Glitch Mode"
                         last_action_ms = t_ms
                     elif gesture_id == "reset":
                         active_filter_name = "Normal"
