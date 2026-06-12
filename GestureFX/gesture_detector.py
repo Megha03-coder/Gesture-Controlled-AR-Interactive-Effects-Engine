@@ -22,10 +22,11 @@ class GestureDetector:
             (1, 1, 1, 0, 0): ("Two Fingers Up", "neon_glow"),   # Forgiving thumb
             (0, 1, 1, 1, 0): ("Three Fingers Up", "cartoon"),
             (1, 1, 1, 1, 0): ("Three Fingers Up", "cartoon"),   # Forgiving thumb
-            (1, 1, 1, 1, 1): ("Open Palm", "reset"),
-            (0, 1, 1, 1, 1): ("Open Palm", "reset"),            # Forgiving thumb
-            (0, 0, 0, 0, 0): ("Closed Fist", "toggle_pause"),
-            (1, 0, 0, 0, 0): ("Closed Fist", "toggle_pause"),   # Forgiving thumb
+            (0, 1, 1, 1, 1): ("Four Fingers Up", "rainbow_wave"),
+            (1, 1, 1, 1, 1): ("Open Palm", "hologram"),
+            (0, 0, 0, 0, 0): ("Closed Fist", "glitch_mode"),
+            (1, 0, 0, 0, 0): ("Closed Fist", "glitch_mode"),    # Forgiving thumb
+            (0, 0, 0, 0, 1): ("Pinky Up", "reset"),             # Reset filter
         }
 
     def detect(self, finger_bits: List[int]) -> GestureResult:
