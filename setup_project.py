@@ -13,7 +13,6 @@ def create_architecture():
         "ai",
         "data",
         "assets/effects",
-        "assets/sounds",
         "assets/icons",
         "assets/models",
         "assets/backgrounds"

@@ -15,10 +15,9 @@ A real-time computer-vision application that uses your webcam + MediaPipe Hands 
   - Background blur (mask + selective Gaussian blur)
   - Particle engine (spawn/move/fade)
   - Freeze frame / slow-motion (when closed fist)
-- Sound playback (Pygame)
 - Modular, scalable architecture
 
-> This project uses code-generated visuals (no required image assets). An `assets/` folder is included for optional future PNG/SFX drops.
+> This project uses code-generated visuals (no required image assets). An `assets/` folder is included for optional future PNG drops.
 
 ## Installation
 ### 1) Create/activate a virtual environment
@@ -46,8 +45,9 @@ Gestures are recognized using finger-up patterns (thumb handling is simplified; 
 | Two Fingers Up | `[0,1,1,0,0]` | Lightning |
 | Open Palm | `[1,1,1,1,1]` | RGB filter + Rainbow overlay + background blur |
 | Closed Fist | `[0,0,0,0,0]` | Freeze frame + slow motion |
-| Thumbs Up | `[1,0,0,0,0]` | Success animation + sound |
+| Thumbs Up | `[1,0,0,0,0]` | Success animation |
 | Victory Sign | `[0,1,1,0,0]` | Neon glow + animated particles |
+| Shaka Sign | `[1,0,0,0,1]` | Take a screenshot |
 
 ## Project Structure
 ```text
@@ -58,13 +58,10 @@ GestureFX/
   effect_manager.py
   particle_system.py
   overlay_manager.py
-  sound_manager.py
   utils.py
   assets/
     effects/
-    sounds/
     videos/
   requirements.txt
   README.md
 ```
-
