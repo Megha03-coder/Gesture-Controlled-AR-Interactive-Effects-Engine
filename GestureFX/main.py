@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import cv2
+import time
 
 from gesture_detector import GestureDetector
 from filters import Filters
@@ -29,6 +30,22 @@ def main():
 
     last_action_ms = 0
     debounce_ms = 1000  # 1 second debounce for gesture actions
+
+    # --- MENU SETUP ---
+    modes = ["Normal", "Black & White", "Cartoon", "Neon Glow", "Rainbow Wave", "Prism Split", "Glitch Mode", "Fire Trail", "Hologram"]
+    menu_items = []
+    start_y = 15
+    for i, mode in enumerate(modes):
+        menu_items.append({
+            "name": mode,
+            "x1": 460, # Right side of the 640px wide frame
+            "y1": start_y + (i * 50),
+            "x2": 620,
+            "y2": start_y + (i * 50) + 40
+        })
+    hover_start_time = 0
+    hovered_item = None
+    hover_duration = 1.0
 
     while True:
         ok, frame = cap.read()
@@ -108,6 +125,46 @@ def main():
         
         status = " (PAUSED)" if filter_paused else ""
         cv2.putText(frame, f"Filter: {active_filter_name}{status}", (10, 90), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 255), 2)
+
+        # --- MENU INTERACTION & DRAWING ---
+        overlay = frame.copy()
+        for item in menu_items:
+            cv2.rectangle(overlay, (item["x1"], item["y1"]), (item["x2"], item["y2"]), (0, 0, 0), -1)
+        frame[:] = cv2.addWeighted(overlay, 0.4, frame, 0.6, 0)
+
+        if hand_lm and len(hand_lm) > 8:
+            try:
+                lm8 = hand_lm[8]
+                cx, cy = lm8[1:3] if len(lm8) == 3 else lm8[0:2]
+                cx, cy = int(cx), int(cy)
+                
+                cv2.circle(frame, (cx, cy), 10, (255, 0, 255), cv2.FILLED)
+                
+                hovering_any = False
+                for item in menu_items:
+                    if item["x1"] < cx < item["x2"] and item["y1"] < cy < item["y2"]:
+                        hovering_any = True
+                        if hovered_item != item["name"]:
+                            hovered_item = item["name"]
+                            hover_start_time = time.time()
+                        else:
+                            elapsed = time.time() - hover_start_time
+                            progress = min(1.0, elapsed / hover_duration)
+                            bar_w = int((item["x2"] - item["x1"]) * progress)
+                            cv2.rectangle(frame, (item["x1"], item["y2"] - 5), (item["x1"] + bar_w, item["y2"]), (0, 255, 255), -1)
+                            
+                            if elapsed >= hover_duration:
+                                active_filter_name = item["name"]
+                        break
+                if not hovering_any:
+                    hovered_item = None
+            except Exception:
+                pass
+                
+        for item in menu_items:
+            color = (0, 255, 0) if item["name"] == active_filter_name else (255, 255, 255)
+            cv2.rectangle(frame, (item["x1"], item["y1"]), (item["x2"], item["y2"]), color, 2)
+            cv2.putText(frame, item["name"], (item["x1"] + 10, item["y1"] + 25), cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 1)
 
         cv2.imshow("GestureFX AI", frame)
 
