@@ -36,6 +36,22 @@ class VisionFXEngine:
         self.hover_start_time = 0
         self.hovered_item = None
         self.hover_duration = 1.0  # Seconds required to hover and select
+        
+        # Gesture Mapping for quick selection
+        self.gesture_map = {
+            (0, 1, 0, 0, 0): "Black & White",  # Pointing / One Finger
+            (1, 1, 0, 0, 0): "Black & White",  # Forgiving thumb
+            (0, 1, 1, 0, 0): "Neon Glow",      # Victory / Two Fingers
+            (1, 1, 1, 0, 0): "Neon Glow",      # Forgiving thumb
+            (0, 1, 1, 1, 0): "Cartoon",        # Three Fingers
+            (1, 1, 1, 1, 0): "Cartoon",        # Forgiving thumb
+            (0, 1, 1, 1, 1): "Rainbow Wave",   # Four Fingers
+            (1, 1, 1, 1, 1): "Hologram",       # Open Palm
+            (0, 0, 0, 0, 0): "Glitch Mode",    # Fist
+            (1, 0, 0, 0, 0): "Glitch Mode",    # Forgiving thumb
+            (0, 0, 0, 0, 1): "Normal",         # Pinky Up (Reset)
+        }
+        self.last_gesture_time = 0
         self._init_menu()
 
     def _init_menu(self):
@@ -87,6 +103,8 @@ class VisionFXEngine:
                 
         if not hovering_any:
             self.hovered_item = None
+            
+        return hovering_any
 
     def start(self):
         prev_time = time.time()
@@ -104,11 +122,13 @@ class VisionFXEngine:
             
             # Extract standard landmarks for filters & menu
             compat_hand_lm = None
+            finger_bits = None
             if hands:
                 try:
                     hand = hands[0]
                     if len(hand.lm_list) > 8:
                         compat_hand_lm = hand.lm_list
+                    finger_bits = hand.finger_bits
                 except Exception:
                     pass
 
@@ -138,15 +158,28 @@ class VisionFXEngine:
             self._draw_menu(frame)
 
             # --- 2. MENU INTERACTION ---
+            is_hovering_menu = False
             if compat_hand_lm:
                 try:
                     cx, cy = compat_hand_lm[8]
                     cv2.circle(frame, (int(cx), int(cy)), 10, (255, 0, 255), cv2.FILLED)
-                    self._check_menu_interaction(int(cx), int(cy), frame)
+                    is_hovering_menu = self._check_menu_interaction(int(cx), int(cy), frame)
                 except Exception:
                     pass
 
             curr_time = time.time()
+            
+            # --- 2.5 GESTURE SELECTION ---
+            if finger_bits and not is_hovering_menu:
+                bits_tuple = tuple(finger_bits)
+                if bits_tuple in self.gesture_map:
+                    target_mode = self.gesture_map[bits_tuple]
+                    
+                    # Debounce gesture changes (wait 1 second between rapid switches)
+                    if target_mode != self.active_mode and (curr_time - self.last_gesture_time) > 1.0:
+                        self.active_mode = target_mode
+                        self.last_gesture_time = curr_time
+
             fps = int(1 / (curr_time - prev_time)) if (curr_time - prev_time) > 0 else 0
             prev_time = curr_time
 
