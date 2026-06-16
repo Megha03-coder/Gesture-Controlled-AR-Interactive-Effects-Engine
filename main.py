@@ -1,14 +1,8 @@
 import cv2
 import time
-import sys
-import os
 from config import Config
 
-# --- FUTURE VISIONFX MODULES (To be implemented) ---
-from tracking.hand_tracking import AdvancedHandTracker
-
-# Add GestureFX to path to import effects modules
-sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), "GestureFX"))
+from hand_tracking import HandTracker
 from filters import Filters
 from particle_system import ParticleSystem
 
@@ -20,8 +14,8 @@ class VisionFXEngine:
         self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, Config.RESOLUTION[0])
         self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, Config.RESOLUTION[1])
         
-        # Initialize sub-systems (Placeholders for Phase 2)
-        self.hand_tracker = AdvancedHandTracker()
+        # Initialize sub-systems
+        self.hand_tracker = HandTracker(max_num_hands=1, min_detection_confidence=0.6, min_tracking_confidence=0.6)
         self.particle_sys = ParticleSystem(max_particles=1600)
         self.filter_engine = Filters(self.particle_sys)
         
@@ -103,9 +97,8 @@ class VisionFXEngine:
             if hands:
                 try:
                     hand = hands[0]
-                    lm_list = getattr(hand, 'lm_list', hand)
-                    if len(lm_list) > 8:
-                        compat_hand_lm = [lm[1:3] if len(lm) == 3 else lm[0:2] for lm in lm_list]
+                    if len(hand.lm_list) > 8:
+                        compat_hand_lm = hand.lm_list
                 except Exception:
                     pass
 
