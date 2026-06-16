@@ -1,6 +1,16 @@
 import cv2
 import time
+import sys
+import os
+
+# Suppress noisy MediaPipe and TensorFlow C++ warnings
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
+os.environ['GLOG_minloglevel'] = '2'
+
 from config import Config
+
+# Tell Python to look in the GestureFX folder for these files
+sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), "GestureFX"))
 
 from hand_tracking import HandTracker
 from filters import Filters
@@ -20,7 +30,7 @@ class VisionFXEngine:
         self.filter_engine = Filters(self.particle_sys)
         
         self.is_running = True
-        self.modes = ["Normal", "Black & White", "Neon Glow", "Rainbow Wave", "Prism Split", "Glitch Mode", "Cartoon", "Fire Trail", "Hologram"]
+        self.modes = ["Normal", "Black & White", "Neon Glow", "Rainbow Wave", "Prism Split", "Glitch Mode", "Cartoon", "Fire Trail", "Hologram", "Thermal Vision", "Kaleidoscope"]
         self.active_mode = "Normal"
         self.menu_items = []
         self.hover_start_time = 0
@@ -30,14 +40,14 @@ class VisionFXEngine:
 
     def _init_menu(self):
         # Define bounding boxes for each mode button
-        start_y = 60
+        start_y = 30
         for i, mode in enumerate(self.modes):
             rect = {
                 "name": mode,
                 "x1": 20,
-                "y1": start_y + (i * 70),
-                "x2": 220,
-                "y2": start_y + (i * 70) + 50
+                "y1": start_y + (i * 60),
+                "x2": 230,  # Slightly wider to fit longer names
+                "y2": start_y + (i * 60) + 45
             }
             self.menu_items.append(rect)
 
@@ -53,7 +63,7 @@ class VisionFXEngine:
         for item in self.menu_items:
             color = (0, 255, 0) if item["name"] == self.active_mode else (255, 255, 255)
             cv2.rectangle(frame, (item["x1"], item["y1"]), (item["x2"], item["y2"]), color, 2)
-            cv2.putText(frame, item["name"].upper(), (item["x1"] + 10, item["y1"] + 40), cv2.FONT_HERSHEY_SIMPLEX, 0.7, color, 2)
+            cv2.putText(frame, item["name"].upper(), (item["x1"] + 10, item["y1"] + 30), cv2.FONT_HERSHEY_SIMPLEX, 0.6, color, 2)
             
     def _check_menu_interaction(self, x, y, frame):
         hovering_any = False
@@ -119,6 +129,10 @@ class VisionFXEngine:
                 frame = self.filter_engine.fire_trail(frame, compat_hand_lm)
             elif self.active_mode == "Hologram":
                 frame = self.filter_engine.hologram(frame)
+            elif self.active_mode == "Thermal Vision":
+                frame = self.filter_engine.thermal_vision(frame)
+            elif self.active_mode == "Kaleidoscope":
+                frame = self.filter_engine.kaleidoscope(frame)
 
             # Draw menu base first so selection animations draw on top
             self._draw_menu(frame)
