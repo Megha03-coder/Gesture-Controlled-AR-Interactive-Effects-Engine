@@ -17,5 +17,4 @@ class Config:
     HUD_COLOR_ALERT = (0, 0, 255)   # Red
     
     # Feature Toggles
-    ENABLE_VOICE_ASSISTANT = True
     ENABLE_SYSTEM_CONTROL = True    # Set to True to allow PC control (mouse/volume)

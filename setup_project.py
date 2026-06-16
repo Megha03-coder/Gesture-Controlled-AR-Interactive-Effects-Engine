@@ -7,7 +7,6 @@ def create_architecture():
         "tracking",
         "gestures",
         "effects",
-        "audio",
         "controls",
         "ui",
         "ai",
